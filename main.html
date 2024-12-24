@@ -7,147 +7,168 @@
     <style>
         body {
             margin: 0;
-            overflow: hidden;
-            background: linear-gradient(to bottom, #000428, #004e92);
             height: 100vh;
+            background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+            overflow: hidden;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            font-family: Arial, sans-serif;
         }
 
-        .container {
-            position: relative;
-            width: 100%;
-            height: 100%;
+        .snow {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
         }
 
         .tree {
-            position: absolute;
-            left: 50%;
-            bottom: 20%;
-            transform: translateX(-50%);
+            margin-top: 50px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .tree div {
             width: 0;
             height: 0;
             border-left: 50px solid transparent;
             border-right: 50px solid transparent;
             border-bottom: 100px solid #0f5;
-            filter: drop-shadow(0 0 10px #0f5);
+            margin-top: -50px;
+            position: relative;
         }
 
-        .tree::before {
-            content: '';
-            position: absolute;
-            top: 80px;
-            left: -35px;
-            width: 70px;
-            height: 20px;
-            background: brown;
+        .tree div:nth-child(2) {
+            border-bottom: 120px solid #0d4;
+            border-left: 60px solid transparent;
+            border-right: 60px solid transparent;
         }
 
-        .snow {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: white;
-            border-radius: 50%;
-            opacity: 0.8;
+        .tree div:nth-child(3) {
+            border-bottom: 140px solid #0c3;
+            border-left: 70px solid transparent;
+            border-right: 70px solid transparent;
         }
 
-        .control-panel {
+        .trunk {
+            width: 40px !important;
+            height: 60px !important;
+            background: #842;
+            border: none !important;
+            margin-top: 0 !important;
+        }
+
+        .controls {
             position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(255,255,255,0.2);
-            padding: 15px;
-            border-radius: 10px;
+            bottom: 20px;
+            display: flex;
+            gap: 20px;
         }
 
         button {
-            padding: 10px;
-            margin: 5px;
+            padding: 10px 20px;
             border: none;
             border-radius: 5px;
-            background: #ff4d4d;
-            color: white;
+            background: #fff;
             cursor: pointer;
+            font-size: 16px;
         }
 
-        button:hover {
-            background: #ff6666;
+        .ornament {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: red;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="container" id="container">
-        <div class="tree"></div>
+    <h1>圣诞快乐!</h1>
+    <div class="tree">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div class="trunk"></div>
+    </div>
+    <div class="controls">
+        <button onclick="toggleSnow()">开关雪花</button>
+        <button onclick="toggleMusic()">开关音乐</button>
+        <button onclick="addOrnaments()">添加装饰</button>
     </div>
 
-    <div class="control-panel">
-        <button onclick="toggleSnow()">切换下雪</button>
-        <button onclick="toggleMusic()">播放/暂停音乐</button>
-    </div>
-
-    <audio id="bgMusic" loop>
-        <source src="jingle-bells.mp3" type="audio/mpeg">
+    <audio id="music" loop>
+        <source src="data:audio/midi;base64,..." type="audio/midi">
     </audio>
 
     <script>
-        let isSnowing = false;
         let snowflakes = [];
-        const container = document.getElementById('container');
-        const audio = document.getElementById('bgMusic');
+        let isSnowing = false;
+        let snowInterval;
+
+        function toggleSnow() {
+            isSnowing = !isSnowing;
+            if (isSnowing) {
+                snowInterval = setInterval(createSnowflake, 100);
+            } else {
+                clearInterval(snowInterval);
+                snowflakes.forEach(snow => snow.remove());
+                snowflakes = [];
+            }
+        }
 
         function createSnowflake() {
             const snow = document.createElement('div');
             snow.className = 'snow';
             snow.style.left = Math.random() * window.innerWidth + 'px';
-            snow.style.top = '-10px';
             snow.style.animationDuration = Math.random() * 3 + 2 + 's';
-            container.appendChild(snow);
-            return snow;
-        }
+            snow.style.opacity = Math.random();
+            snow.style.transform = `scale(${Math.random()})`;
+            document.body.appendChild(snow);
+            snowflakes.push(snow);
 
-        function moveSnow(snowflake) {
-            let posY = parseFloat(snowflake.style.top);
-            let posX = parseFloat(snowflake.style.left);
-            
-            posY += 1;
-            posX += Math.sin(posY / 30) * 2;
+            const animation = snow.animate([
+                { transform: `translate(0, 0)` },
+                { transform: `translate(${Math.random() * 200 - 100}px, ${window.innerHeight}px)` }
+            ], {
+                duration: Math.random() * 3000 + 2000,
+                easing: 'linear'
+            });
 
-            snowflake.style.top = posY + 'px';
-            snowflake.style.left = posX + 'px';
-
-            if (posY > window.innerHeight) {
-                container.removeChild(snowflake);
-                return false;
-            }
-            return true;
-        }
-
-        function snowing() {
-            if (!isSnowing) return;
-            
-            if (Math.random() < 0.3) {
-                snowflakes.push(createSnowflake());
-            }
-
-            snowflakes = snowflakes.filter(snow => moveSnow(snow));
-            requestAnimationFrame(snowing);
-        }
-
-        function toggleSnow() {
-            isSnowing = !isSnowing;
-            if (isSnowing) {
-                snowing();
-            }
+            animation.onfinish = () => {
+                snow.remove();
+                snowflakes = snowflakes.filter(s => s !== snow);
+            };
         }
 
         function toggleMusic() {
-            if (audio.paused) {
-                audio.play();
+            const music = document.getElementById('music');
+            if (music.paused) {
+                music.play();
             } else {
-                audio.pause();
+                music.pause();
             }
+        }
+
+        function addOrnaments() {
+            const tree = document.querySelector('.tree');
+            const ornament = document.createElement('div');
+            ornament.className = 'ornament';
+            ornament.style.left = Math.random() * 100 + 'px';
+            ornament.style.top = Math.random() * 200 + 'px';
+            ornament.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            tree.appendChild(ornament);
         }
     </script>
 </body>
