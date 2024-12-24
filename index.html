@@ -8,7 +8,7 @@
         body {
             margin: 0;
             height: 100vh;
-            background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+            background: linear-gradient(45deg, #1a2980, #26d0ce);
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -18,94 +18,130 @@
 
         .snow {
             position: absolute;
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             background: white;
             border-radius: 50%;
             pointer-events: none;
+            filter: blur(1px);
+        }
+
+        .tree-container {
+            margin-top: 50px;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .tree-container:hover {
+            transform: scale(1.05);
         }
 
         .tree {
-            margin-top: 50px;
             position: relative;
+            width: 300px;
+            height: 400px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        .tree div {
+        .branch {
+            position: absolute;
             width: 0;
             height: 0;
-            border-left: 50px solid transparent;
-            border-right: 50px solid transparent;
-            border-bottom: 100px solid #0f5;
-            margin-top: -50px;
-            position: relative;
+            border-left: solid transparent;
+            border-right: solid transparent;
+            border-bottom: solid #0a4;
         }
 
-        .tree div:nth-child(2) {
-            border-bottom: 120px solid #0d4;
-            border-left: 60px solid transparent;
-            border-right: 60px solid transparent;
+        .branch1 { 
+            border-left-width: 30px;
+            border-right-width: 30px;
+            border-bottom-width: 60px;
+            top: 0;
         }
 
-        .tree div:nth-child(3) {
-            border-bottom: 140px solid #0c3;
-            border-left: 70px solid transparent;
-            border-right: 70px solid transparent;
+        .branch2 {
+            border-left-width: 50px;
+            border-right-width: 50px;
+            border-bottom-width: 100px;
+            top: 40px;
+        }
+
+        .branch3 {
+            border-left-width: 70px;
+            border-right-width: 70px;
+            border-bottom-width: 140px;
+            top: 120px;
+        }
+
+        .branch4 {
+            border-left-width: 90px;
+            border-right-width: 90px;
+            border-bottom-width: 180px;
+            top: 240px;
         }
 
         .trunk {
-            width: 40px !important;
-            height: 60px !important;
-            background: #842;
-            border: none !important;
-            margin-top: 0 !important;
-        }
-
-        .controls {
-            position: fixed;
-            bottom: 20px;
-            display: flex;
-            gap: 20px;
-        }
-
-        button {
-            padding: 10px 20px;
-            border: none;
+            position: absolute;
+            bottom: 0;
+            width: 40px;
+            height: 80px;
+            background: linear-gradient(45deg, #642, #531);
             border-radius: 5px;
-            background: #fff;
-            cursor: pointer;
-            font-size: 16px;
+        }
+
+        .star {
+            position: absolute;
+            top: -20px;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 30px solid gold;
+            transform: rotate(180deg);
+            filter: drop-shadow(0 0 5px gold);
+            animation: twinkle 1.5s infinite;
         }
 
         .ornament {
             position: absolute;
-            width: 15px;
-            height: 15px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
-            background: red;
+            animation: glow 2s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.5); }
         }
 
         h1 {
             color: white;
-            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 3em;
             margin-top: 20px;
         }
     </style>
 </head>
 <body>
     <h1>圣诞快乐!</h1>
-    <div class="tree">
-        <div></div>
-        <div></div>
-        <div></div>
-        <div class="trunk"></div>
-    </div>
-    <div class="controls">
-        <button onclick="toggleSnow()">开关雪花</button>
-        <button onclick="toggleMusic()">开关音乐</button>
-        <button onclick="addOrnaments()">添加装饰</button>
+    <div class="tree-container" onclick="toggleMusic()">
+        <div class="tree">
+            <div class="star"></div>
+            <div class="branch branch1"></div>
+            <div class="branch branch2"></div>
+            <div class="branch branch3"></div>
+            <div class="branch branch4"></div>
+            <div class="trunk"></div>
+        </div>
     </div>
 
     <audio id="music" loop>
@@ -113,43 +149,46 @@
     </audio>
 
     <script>
-        let snowflakes = [];
-        let isSnowing = false;
-        let snowInterval;
-
-        function toggleSnow() {
-            isSnowing = !isSnowing;
-            if (isSnowing) {
-                snowInterval = setInterval(createSnowflake, 100);
-            } else {
-                clearInterval(snowInterval);
-                snowflakes.forEach(snow => snow.remove());
-                snowflakes = [];
-            }
+        // 自动开始下雪
+        window.onload = function() {
+            createSnow();
+            addOrnaments();
         }
 
-        function createSnowflake() {
-            const snow = document.createElement('div');
-            snow.className = 'snow';
-            snow.style.left = Math.random() * window.innerWidth + 'px';
-            snow.style.animationDuration = Math.random() * 3 + 2 + 's';
-            snow.style.opacity = Math.random();
-            snow.style.transform = `scale(${Math.random()})`;
-            document.body.appendChild(snow);
-            snowflakes.push(snow);
+        function createSnow() {
+            setInterval(() => {
+                const snow = document.createElement('div');
+                snow.className = 'snow';
+                snow.style.left = Math.random() * window.innerWidth + 'px';
+                snow.style.opacity = Math.random();
+                snow.style.transform = `scale(${Math.random()})`;
+                document.body.appendChild(snow);
 
-            const animation = snow.animate([
-                { transform: `translate(0, 0)` },
-                { transform: `translate(${Math.random() * 200 - 100}px, ${window.innerHeight}px)` }
-            ], {
-                duration: Math.random() * 3000 + 2000,
-                easing: 'linear'
-            });
+                const animation = snow.animate([
+                    { transform: `translate(0, 0)` },
+                    { transform: `translate(${Math.random() * 200 - 100}px, ${window.innerHeight}px)` }
+                ], {
+                    duration: Math.random() * 3000 + 2000,
+                    easing: 'linear'
+                });
 
-            animation.onfinish = () => {
-                snow.remove();
-                snowflakes = snowflakes.filter(s => s !== snow);
-            };
+                animation.onfinish = () => snow.remove();
+            }, 100);
+        }
+
+        function addOrnaments() {
+            const colors = ['#ff0000', '#ffff00', '#ff69b4', '#4169e1', '#9400d3'];
+            const tree = document.querySelector('.tree');
+            
+            for(let i = 0; i < 20; i++) {
+                const ornament = document.createElement('div');
+                ornament.className = 'ornament';
+                ornament.style.left = Math.random'ornament';
+                ornament.style.left = Math.random() * 260 + 20.style.left = Math.random() * 260 + 20 + ' + 20 + 'px';
+                ornament.style.top = Math.random() * 360 + 20 + 'px';
+                ornament.style.background = colors[Math.floor(Math.random() * colors.length)];
+                tree.appendChild(ornament);
+            }
         }
 
         function toggleMusic() {
@@ -157,18 +196,9 @@
             if (music.paused) {
                 music.play();
             } else {
+                music.pause(); {
                 music.pause();
             }
-        }
-
-        function addOrnaments() {
-            const tree = document.querySelector('.tree');
-            const ornament = document.createElement('div');
-            ornament.className = 'ornament';
-            ornament.style.left = Math.random() * 100 + 'px';
-            ornament.style.top = Math.random() * 200 + 'px';
-            ornament.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
-            tree.appendChild(ornament);
         }
     </script>
 </body>
